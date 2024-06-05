@@ -380,7 +380,8 @@ static const mjtNum kRelativeThickness = 0.02;
 
 void TouchGrid::Visualize(const mjModel* m, mjData* d, const mjvOption* opt,
                              mjvScene* scn, int instance) {
-  mjMARKSTACK;
+  return;
+  /* mjMARKSTACK;
 
   // Get sensor id.
   int id;
@@ -479,6 +480,7 @@ void TouchGrid::Visualize(const mjModel* m, mjData* d, const mjvOption* opt,
   }
 
   mjFREESTACK;
+    */
 }
 
 
