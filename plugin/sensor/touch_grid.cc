@@ -19,10 +19,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <sstream>
-#include <iostream>
-#include <optional>
 #include <string>
-#include <utility>
 
 #include <mujoco/mjdata.h>
 #include <mujoco/mjmodel.h>
@@ -155,14 +152,6 @@ void CartesianToSpherical(const mjtNum xyz[3], mjtNum aer[3]) {
   aer[0] = mju_atan2(x, -z);
   aer[1] = mju_atan2(y, mju_sqrt(x*x + z*z));
   aer[2] = mju_sqrt(x*x + z*z + y*y);
-}
-
-// Transform spherical (azimuth, elevation, radius) to Cartesian (x,y,z).
-void SphericalToCartesian(const mjtNum aer[3], mjtNum xyz[3]) {
-  mjtNum a = aer[0], e = aer[1], r = aer[2];
-  xyz[0] = r * mju_cos(e) * mju_sin(a);
-  xyz[1] = r * mju_sin(e);
-  xyz[2] = -r * mju_cos(e) * mju_cos(a);
 }
 
 }  // namespace
@@ -375,112 +364,10 @@ void TouchGrid::Compute(const mjModel* m, mjData* d, int instance) {
   mjFREESTACK;
 }
 
-// Thickness of taxel-visualization boxes relative to contact distance.
-static const mjtNum kRelativeThickness = 0.02;
 
 void TouchGrid::Visualize(const mjModel* m, mjData* d, const mjvOption* opt,
                              mjvScene* scn, int instance) {
   return;
-  /* mjMARKSTACK;
-
-  // Get sensor id.
-  int id;
-  for (id=0; id < m->nsensor; ++id) {
-    if (m->sensor_type[id] == mjSENS_PLUGIN &&
-        m->sensor_plugin[id] == instance) {
-      break;
-    }
-  }
-
-  // Get sensor data.
-  mjtNum* sensordata = d->sensordata + m->sensor_adr[id];
-
-  // Get maximum absolute normal force.
-  mjtNum maxval = 0;
-  int frame = size_[0]*size_[1];
-  for (int j=0; j < frame; j++) {
-    maxval = mju_max(maxval, mju_abs(sensordata[j]));
-  }
-
-  // If no normal force readings, quick return.
-  if (!maxval) {
-    mjFREESTACK;
-    return;
-  }
-
-  // Get site id and frame.
-  int site_id = m->sensor_objid[id];
-  mjtNum* site_pos = d->site_xpos + 3*site_id;
-  mjtNum* site_mat = d->site_xmat + 9*site_id;
-  mjtNum site_quat[4];
-  mju_mat2Quat(site_quat, site_mat);
-
-  // Allocate bin edges.
-  mjtNum* x_edges = mj_stackAlloc(d, size_[0] + 1);
-  mjtNum* y_edges = mj_stackAlloc(d, size_[1] + 1);
-
-  // Make bin edges.
-  BinEdges(x_edges, y_edges, size_, fov_, gamma_);
-
-  // Draw geoms.
-  for (int i=0; i < size_[0]; i++) {
-    for (int j=0; j < size_[1]; j++) {
-      mjtNum dist = distance_.data()[j*size_[0] + i];
-      if (!dist) {
-        continue;
-      }
-      if (scn->ngeom >= scn->maxgeom) {
-        mj_warning(d, mjWARN_VGEOMFULL, scn->maxgeom);
-        mjFREESTACK;
-        return;
-      } else {
-        // size
-        mjtNum size[3] = {dist*0.5*(x_edges[i+1]-x_edges[i]),
-                          dist*0.5*(y_edges[j+1]-y_edges[j]),
-                          dist*kRelativeThickness};
-
-        // position
-        mjtNum pos[3];
-        mjtNum aer[3] = {0.5*(x_edges[i+1]+x_edges[i]),
-                         0.5*(y_edges[j+1]+y_edges[j]),
-                         dist*(1-kRelativeThickness)};
-        SphericalToCartesian(aer, pos);
-        mju_rotVecMat(pos, pos, site_mat);
-        mju_addTo3(pos, site_pos);
-
-        // orientation
-        mjtNum a_quat[4];
-        mjtNum site_y[3] = {-site_mat[1], -site_mat[4], -site_mat[7]};
-        mju_axisAngle2Quat(a_quat, site_y, aer[0]);
-        mjtNum e_quat[4];
-        mjtNum site_x[3] = {site_mat[0], site_mat[3], site_mat[6]};
-        mju_axisAngle2Quat(e_quat, site_x, aer[1]);
-        mjtNum quat[4];
-        mju_mulQuat(quat, e_quat, site_quat);
-        mju_mulQuat(quat, a_quat, quat);
-        mjtNum mat[9];
-        mju_quat2Mat(mat, quat);
-
-        // color
-        float rgba[4] = {1, 1, 1, 1.0};
-        for (int k=0; k < mjMIN(nchannel_, 3); k++) {
-          rgba[k] = mju_abs(sensordata[k*frame + j*size_[0] + i]) / maxval;
-        }
-
-        // draw box geom
-        mjvGeom* thisgeom = scn->geoms + scn->ngeom;
-        mjv_initGeom(thisgeom, mjGEOM_BOX, size, pos, mat, rgba);
-        thisgeom->objtype = mjOBJ_UNKNOWN;
-        thisgeom->objid = id;
-        thisgeom->category = mjCAT_DECOR;
-        thisgeom->segid = scn->ngeom;
-        scn->ngeom++;
-      }
-    }
-  }
-
-  mjFREESTACK;
-    */
 }
 
 
